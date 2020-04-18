@@ -3,9 +3,11 @@ AUTOMAKE_OPTIONS = 1.0 foreign
 
 DEFS = 
 
-noinst_LTLIBRARIES = libshadow.la
+lib_LTLIBRARIES = libshadow.la
 
-libshadow_la_LDFLAGS = -version-info 0:0:0
+libshadow_la_LDFLAGS = -version-info \
+        -Wl,-soname,liblxc.so.$(firstword $(subst ., ,@SHADOW_ABI@)) \
+        @SHADOW_ABI_MAJOR@
 libshadow_la_CPPFLAGS = $(ECONF_CPPFLAGS)
 if HAVE_VENDORDIR
 libshadow_la_CPPFLAGS += -DVENDORDIR=\"$(VENDORDIR)\"

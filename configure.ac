@@ -1,10 +1,19 @@
 dnl Process this file with autoconf to produce a configure script.
+m4_define([shadow_abi_major], 1)
+m4_define([shadow_abi_minor], 0)
+m4_define([shadow_abi_micro], 0)
+m4_define([shadow_abi], [shadow_abi_major.shadow_abi_minor.shadow_abi_micro])
 AC_PREREQ([2.64])
 AC_INIT([shadow], [4.8.1], [pkg-shadow-devel@lists.alioth.debian.org], [],
 	[https://github.com/shadow-maint/shadow])
 AM_INIT_AUTOMAKE([1.11 foreign dist-xz])
 AM_SILENT_RULES([yes])
 AC_CONFIG_HEADERS([config.h])
+
+AC_SUBST([SHADOW_ABI_MAJOR], [shadow_abi_major])
+AC_SUBST([SHADOW_ABI_MINOR], [shadow_abi_minor])
+AC_SUBST([SHADOW_ABI_MICRO], [shadow_abi_micro])
+AC_SUBST([SHADOW_ABI], [shadow_abi])
 
 dnl Some hacks...
 test "$prefix" = "NONE" && prefix="/usr"
