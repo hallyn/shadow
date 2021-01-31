@@ -262,6 +262,13 @@ extern void motd (void);
 /* myname.c */
 extern /*@null@*//*@only@*/struct passwd *get_my_pwent (void);
 
+/* nss.c */
+#include <libsubid/subid.h>
+extern void nss_init(char *nsswitch_path);
+extern bool nss_is_initialized();
+extern struct subid_nss_ops *get_subid_nss_handle();
+
+
 /* pam_pass_non_interactive.c */
 #ifdef USE_PAM
 extern int do_pam_passwd_non_interactive (const char *pam_service,
