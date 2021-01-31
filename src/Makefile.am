@@ -160,7 +160,8 @@ endif
 noinst_PROGRAMS += list_subid_ranges  \
 					get_subid_owners \
 					new_subid_range \
-					free_subid_range
+					free_subid_range \
+					check_subid_range
 
 MISCLIBS = \
 	$(LIBAUDIT) \
@@ -216,4 +217,13 @@ free_subid_range_LDADD = \
 	$(top_builddir)/libmisc/libmisc.a \
 	$(top_builddir)/libsubid/libsubid.la \
 	$(MISCLIBS)
+
+check_subid_range_CPPFLAGS = \
+	-I$(top_srcdir)/lib \
+	-I$(top_srcdir)/libmisc
+
+check_subid_range_LDADD = \
+	$(top_builddir)/lib/libshadow.la \
+	$(top_builddir)/libmisc/libmisc.la \
+	$(MISCLIBS) -ldl
 endif
