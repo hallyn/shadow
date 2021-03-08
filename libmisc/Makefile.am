@@ -71,7 +71,6 @@ libmisc_la_SOURCES = \
 	xgetgrgid.c \
 	xgetspnam.c \
 	xmalloc.c \
-	nss.c \
 	yesno.c
 
 if WITH_BTRFS

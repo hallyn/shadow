@@ -111,15 +111,6 @@ grpck_LDADD    = $(LDADD) $(LIBAUDIT) $(LIBSELINUX) $(LIBECONF)
 grpconv_LDADD  = $(LDADD) $(LIBAUDIT) $(LIBSELINUX) $(LIBECONF)
 grpunconv_LDADD = $(LDADD) $(LIBAUDIT) $(LIBSELINUX) $(LIBECONF)
 lastlog_LDADD   = $(LDADD) $(LIBAUDIT) $(LIBECONF)
-newuidmap_SOURCES = newuidmap.c ../libmisc/nss.c
-newgidmap_SOURCES = newgidmap.c ../libmisc/nss.c
-groupadd_SOURCES = groupadd.c ../libmisc/nss.c
-groupmod_SOURCES = groupmod.c ../libmisc/nss.c
-groupdel_SOURCES = groupdel.c ../libmisc/nss.c
-newusers_SOURCES = newusers.c ../libmisc/nss.c
-useradd_SOURCES = useradd.c ../libmisc/nss.c
-usermod_SOURCES = usermod.c ../libmisc/nss.c
-userdel_SOURCES = userdel.c ../libmisc/nss.c
 login_SOURCES  = \
 	login.c \
 	login_nopam.c

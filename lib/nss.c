@@ -5,6 +5,7 @@
 #include <string.h>
 #include <strings.h>
 #include <ctype.h>
+#include "prototypes.h"
 #include "../libsubid/subid.h"
 
 #define NSSWITCH "/etc/nsswitch.conf"
@@ -17,8 +18,16 @@
 // the subids are a pretty limited resource, and local files seem
 // bound to step on any other allocations leading to insecure
 // conditions.
-bool nss_initialized;
-void *subid_nss_handle;
+static bool nss_initialized;
+static void *subid_nss_handle;
+
+void *get_subid_nss_handle() {
+	return subid_nss_handle;
+}
+
+bool nss_is_initialized() {
+	return nss_initialized;
+}
 
 void nss_exit() {
 	if (nss_initialized && subid_nss_handle) {
