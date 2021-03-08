@@ -163,6 +163,12 @@ noinst_PROGRAMS += list_subid_ranges  \
 					free_subid_range \
 					check_subid_range
 
+list_subid_ranges_LDADD = -ldl
+get_subid_owners_LDADD = -ldl
+new_subid_range_LDADD = -ldl
+free_subid_range_LDADD = -ldl
+check_subid_range_LDADD = -ldl
+
 MISCLIBS = \
 	$(LIBAUDIT) \
 	$(LIBSELINUX) \
