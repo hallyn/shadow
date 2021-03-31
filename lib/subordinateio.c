@@ -795,13 +795,19 @@ struct subordinate_range **list_owner_ranges(const char *owner, enum subid_type 
 	const struct subordinate_range *range;
 	struct subordinate_range **ranges = NULL;
 	struct commonio_db *db;
+	bool ok;
+	enum subid_status status;
 	int size = 0;
 	struct subid_nss_ops *h;
 
 	nss_init(NULL);
 	h = get_subid_nss_handle();
-	if (h)
-		return h->list_owner_ranges(owner, id_type);
+	if (h) {
+		status = h->list_owner_ranges(owner, id_type, &ranges, &ok);
+		if (status == SUBID_STATUS_SUCCESS && ok)
+			return ranges;
+		return NULL;
+	}
 
 	if (id_type == ID_TYPE_UID)
 		db = &subordinate_uid_db;
@@ -875,13 +881,20 @@ int find_subid_owners(unsigned long id, uid_t **uids, enum subid_type id_type)
 {
 	const struct subordinate_range *range;
 	struct subid_nss_ops *h;
+	enum subid_status status;
+	bool ok;
 	struct commonio_db *db;
 	int n = 0;
 
 	nss_init(NULL);
 	h = get_subid_nss_handle();
-	if (h)
-		return h->find_subid_owners(id, uids, id_type);
+	if (h) {
+		status = h->find_subid_owners(id, uids, id_type, &n, &ok);
+		// Several ways we could handle the error cases here.
+		if (!ok || status != SUBID_STATUS_SUCCESS)
+			return -1;
+		return n;
+	}
 
 	*uids = NULL;
 	if (id_type == ID_TYPE_UID)

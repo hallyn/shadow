@@ -83,28 +83,55 @@ static int alloc_uid(uid_t **uids, uid_t id) {
 	return 1;
 }
 
-int shadow_subid_find_subid_owners(unsigned long id, uid_t **uids, enum subid_type id_type)
+enum subid_status shadow_subid_find_subid_owners(unsigned long id, uid_t **uids, enum subid_type id_type, int *count, bool *ok)
 {
-	if (id >= 100000 && id < 165536)
-		return alloc_uid(uids, getnamuid("user1"));
-	if (id >= 200000 && id < 300000)
-		return alloc_uid(uids, getnamuid("ubuntu"));
-	return 0; // nothing found
+	*ok = false;
+
+	if (id >= 100000 && id < 165536) {
+		*count = alloc_uid(uids, getnamuid("user1"));
+		if (*count == 1) {
+			*ok = true;
+			return SUBID_STATUS_SUCCESS;
+		}
+		return SUBID_STATUS_ERROR; // out of memory
+	}
+	if (id >= 200000 && id < 300000) {
+		*count = alloc_uid(uids, getnamuid("ubuntu"));
+		if (*count == 1) {
+			*ok = true;
+			return SUBID_STATUS_SUCCESS;
+		}
+		return SUBID_STATUS_ERROR; // out of memory
+	}
+	*count = 0; // nothing found
+	*ok = true;
+	return SUBID_STATUS_SUCCESS;
 }
 
-struct subordinate_range **shadow_subid_nss_list_owner_ranges(const char *owner, enum subid_type id_type)
+enum subid_status shadow_subid_nss_list_owner_ranges(const char *owner, enum subid_type id_type, struct subordinate_range ***in_ranges, bool *ok)
 {
 	struct subordinate_range **ranges;
 
-	if (strcmp(owner, "user1") != 0 && strcmp(owner, "ubuntu") != 0)
-		return NULL;
+	*ok = false;
+	if (strcmp(owner, "error") == 0)
+		return SUBID_STATUS_ERROR;
+	if (strcmp(owner, "unknown") == 0)
+		return SUBID_STATUS_UNKNOWN_USER;
+	if (strcmp(owner, "conn") == 0)
+		return SUBID_STATUS_ERROR_CONN;
+
+	if (strcmp(owner, "user1") != 0 && strcmp(owner, "ubuntu") != 0) {
+		*ok = true;
+		*ranges = NULL;
+		return SUBID_STATUS_SUCCESS;
+	}
 	ranges = (struct subordinate_range **)malloc(2 * sizeof(struct subordinate_range *));
 	if (!*ranges)
-		return NULL;
+		return SUBID_STATUS_ERROR;
 	ranges[0] = (struct subordinate_range *)malloc(sizeof(struct subordinate_range));
 	if (!ranges[0]) {
 		free(*ranges);
-		return NULL;
+		return SUBID_STATUS_ERROR;
 	}
 	ranges[0]->owner = strdup(owner);
 	if (strcmp(owner, "user1") == 0) {
@@ -116,6 +143,8 @@ struct subordinate_range **shadow_subid_nss_list_owner_ranges(const char *owner,
 	}
 
 	ranges[1] = NULL;
+	*in_ranges = ranges;
 
-	return ranges;
+	*ok = true;
+	return SUBID_STATUS_SUCCESS;
 }

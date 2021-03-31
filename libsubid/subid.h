@@ -53,12 +53,15 @@ struct subid_nss_ops {
 	 *
 	 * @owner - string representing username being queried
 	 * @id_type - subuid or subgid
-	 *
-	 * Returns a NULL-terminated array of struct subordinate_range,
+	 * @ranges - * a NULL-terminated array of struct subordinate_range,
 	 * or NULL.  The returned array of struct subordinate_range must be
-	 * freed by the caller, if not NULL.
+	 * freed by the caller and it's members, if not NULL.
+     * @ok - whether the result (even if 0) was successful from the nss module.
+
+	 * returns success if the module was able to determine an answer (true or false),
+     * else an error status.
 	 */
-	struct subordinate_range **(*list_owner_ranges)(const char *owner, enum subid_type id_type);
+	enum subid_status (*list_owner_ranges)(const char *owner, enum subid_type id_type, struct subordinate_range ***ranges, bool *ok);
 
 	/*
 	 * nss_find_subid_owners: find uids who own a given subuid or subgid.
@@ -67,11 +70,13 @@ struct subid_nss_ops {
 	 * @uids - pointer to an array of uids which will be allocated by
 	 *         nss_find_subid_owners()
 	 * @id_type - subuid or subgid
+     * @count - number of uids found
+     * @ok - whether the result (even if 0) was successful from the nss module.
 	 *
-	 * Returns the number of uids which own the subid.  @uids must be freed by
-	 * the caller.
+	 * returns success if the module was able to determine an answer (true or false),
+     * else an error status.
 	 */
-	int (*find_subid_owners)(unsigned long id, uid_t **uids, enum subid_type id_type);
+	enum subid_status (*find_subid_owners)(unsigned long id, uid_t **uids, enum subid_type id_type, int *count, bool *ok);
 
     /* The dlsym handle to close */
 	void *handle;
