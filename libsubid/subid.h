@@ -15,10 +15,10 @@ enum subid_type {
 };
 
 enum subid_status {
-    SUBID_STATUS_SUCCESS = 0,
-    SUBID_STATUS_UNKNOWN_USER = 1,
-    SUBID_STATUS_ERROR_CONN = 2,
-    SUBID_STATUS_ERROR = 3,
+	SUBID_STATUS_SUCCESS = 0,
+	SUBID_STATUS_UNKNOWN_USER = 1,
+	SUBID_STATUS_ERROR_CONN = 2,
+	SUBID_STATUS_ERROR = 3,
 };
 
 struct subid_nss_ops {
@@ -27,10 +27,10 @@ struct subid_nss_ops {
 	 *
 	 * @owner: username
 	 * @idtype: subuid or subgid
-     * @result: true if a subid allocation was found for @owner
+	 * @result: true if a subid allocation was found for @owner
 	 *
 	 * returns success if the module was able to determine an answer (true or false),
-     * else an error status.
+	 * else an error status.
 	 */
 	enum subid_status (*has_any_range)(const char *owner, enum subid_type idtype, bool *result);
 
@@ -41,10 +41,10 @@ struct subid_nss_ops {
 	 * @start: first subid in queried range
 	 * @count: number of subids in queried range
 	 * @idtype: subuid or subgid
-     * @result: true if @owner has been allocated the subid range.
+	 * @result: true if @owner has been allocated the subid range.
 	 *
 	 * returns success if the module was able to determine an answer (true or false),
-     * else an error status.
+	 * else an error status.
 	 */
 	enum subid_status (*has_range)(const char *owner, unsigned long start, unsigned long count, enum subid_type idtype, bool *result);
 
@@ -56,10 +56,10 @@ struct subid_nss_ops {
 	 * @ranges - * a NULL-terminated array of struct subordinate_range,
 	 * or NULL.  The returned array of struct subordinate_range must be
 	 * freed by the caller and it's members, if not NULL.
-     * @ok - whether the result (even if 0) was successful from the nss module.
+	 * @ok - whether the result (even if 0) was successful from the nss module.
 
 	 * returns success if the module was able to determine an answer (true or false),
-     * else an error status.
+	 * else an error status.
 	 */
 	enum subid_status (*list_owner_ranges)(const char *owner, enum subid_type id_type, struct subordinate_range ***ranges, bool *ok);
 
@@ -70,15 +70,15 @@ struct subid_nss_ops {
 	 * @uids - pointer to an array of uids which will be allocated by
 	 *         nss_find_subid_owners()
 	 * @id_type - subuid or subgid
-     * @count - number of uids found
-     * @ok - whether the result (even if 0) was successful from the nss module.
+	 * @count - number of uids found
+	 * @ok - whether the result (even if 0) was successful from the nss module.
 	 *
 	 * returns success if the module was able to determine an answer (true or false),
-     * else an error status.
+	 * else an error status.
 	 */
 	enum subid_status (*find_subid_owners)(unsigned long id, uid_t **uids, enum subid_type id_type, int *count, bool *ok);
 
-    /* The dlsym handle to close */
+	/* The dlsym handle to close */
 	void *handle;
 };
 
