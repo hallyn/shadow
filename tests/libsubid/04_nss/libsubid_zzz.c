@@ -101,10 +101,11 @@ enum subid_status shadow_subid_find_subid_owners(unsigned long id, uid_t **uids,
 	return SUBID_STATUS_SUCCESS;
 }
 
-enum subid_status shadow_subid_list_owner_ranges(const char *owner, enum subid_type id_type, struct subordinate_range ***in_ranges)
+enum subid_status shadow_subid_list_owner_ranges(const char *owner, enum subid_type id_type, struct subordinate_range ***in_ranges, int *count)
 {
 	struct subordinate_range **ranges;
 
+	*count = 0;
 	if (strcmp(owner, "error") == 0)
 		return SUBID_STATUS_ERROR;
 	if (strcmp(owner, "unknown") == 0)
@@ -120,7 +121,7 @@ enum subid_status shadow_subid_list_owner_ranges(const char *owner, enum subid_t
 		return SUBID_STATUS_SUCCESS;
 	if (id_type == ID_TYPE_UID && strcmp(owner, "group1") == 0)
 		return SUBID_STATUS_SUCCESS;
-	ranges = (struct subordinate_range **)malloc(2 * sizeof(struct subordinate_range *));
+	ranges = (struct subordinate_range **)malloc(sizeof(struct subordinate_range *));
 	if (!*ranges)
 		return SUBID_STATUS_ERROR;
 	ranges[0] = (struct subordinate_range *)malloc(sizeof(struct subordinate_range));
@@ -138,7 +139,7 @@ enum subid_status shadow_subid_list_owner_ranges(const char *owner, enum subid_t
 		ranges[0]->count = 100000;
 	}
 
-	ranges[1] = NULL;
+	*count = 1;
 	*in_ranges = ranges;
 
 	return SUBID_STATUS_SUCCESS;

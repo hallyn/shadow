@@ -311,17 +311,17 @@ static bool append_range(struct subordinate_range ***ranges, const struct subord
 {
 	struct subordinate_range *tmp;
 	if (!*ranges) {
-		*ranges = malloc(2 * sizeof(struct subordinate_range **));
+		*ranges = malloc(sizeof(struct subordinate_range **));
 		if (!*ranges)
 			return false;
 	} else {
 		struct subordinate_range **new;
-		new = realloc(*ranges, (n + 2) * (sizeof(struct subordinate_range **)));
+		new = realloc(*ranges, (n + 1) * (sizeof(struct subordinate_range **)));
 		if (!new)
 			return false;
 		*ranges = new;
 	}
-	(*ranges)[n] = (*ranges)[n+1] = NULL;
+	(*ranges)[n] = NULL;
 	tmp = subordinate_dup(new);
 	if (!tmp)
 		return false;
@@ -329,13 +329,13 @@ static bool append_range(struct subordinate_range ***ranges, const struct subord
 	return true;
 }
 
-void free_subordinate_ranges(struct subordinate_range **ranges)
+void free_subordinate_ranges(struct subordinate_range **ranges, int count)
 {
 	int i;
 
 	if (!ranges)
 		return;
-	for (i = 0; ranges[i]; i++)
+	for (i = 0; i < count; i++)
 		subordinate_free(ranges[i]);
 	free(ranges);
 }
@@ -769,34 +769,39 @@ gid_t sub_gid_find_free_range(gid_t min, gid_t max, unsigned long count)
 }
 
 /*
- * struct subordinate_range **list_owner_ranges(const char *owner, enum subid_type id_type)
+ * int list_owner_ranges(const char *owner, enum subid_type id_type, struct subordinate_range ***ranges)
  *
  * @owner: username
  * @id_type: UID or GUID
+ * @ranges: pointer to array of ranges into which results will be placed.
  *
- * Returns the subuid or subgid ranges which are owned by the specified
+ * Fills in the subuid or subgid ranges which are owned by the specified
  * user.  Username may be a username or a string representation of a
  * UID number.  If id_type is UID, then subuids are returned, else
- * subgids are returned.  If there is an error, < 0 is returned.
+ * subgids are given.
+
+ * Returns the number of ranges found, or < 0 on error.
  *
  * The caller must free the subordinate range list.
  */
-struct subordinate_range **list_owner_ranges(const char *owner, enum subid_type id_type)
+int list_owner_ranges(const char *owner, enum subid_type id_type, struct subordinate_range ***in_ranges)
 {
 	// TODO - need to handle owner being either uid or username
-	const struct subordinate_range *range;
 	struct subordinate_range **ranges = NULL;
+	const struct subordinate_range *range;
 	struct commonio_db *db;
 	enum subid_status status;
-	int size = 0;
+	int count = 0;
 	struct subid_nss_ops *h;
+
+	*in_ranges = NULL;
 
 	h = get_subid_nss_handle();
 	if (h) {
-		status = h->list_owner_ranges(owner, id_type, &ranges);
+		status = h->list_owner_ranges(owner, id_type, in_ranges, &count);
 		if (status == SUBID_STATUS_SUCCESS)
-			return ranges;
-		return NULL;
+			return count;
+		return -1;
 	}
 
 	if (id_type == ID_TYPE_UID)
@@ -807,14 +812,15 @@ struct subordinate_range **list_owner_ranges(const char *owner, enum subid_type 
 	commonio_rewind(db);
 	while ((range = commonio_next(db)) != NULL) {
 		if (0 == strcmp(range->owner, owner)) {
-			if (!append_range(&ranges, range, size++)) {
-				free_subordinate_ranges(ranges);
-				return NULL;
+			if (!append_range(&ranges, range, count++)) {
+				free_subordinate_ranges(ranges, count-1);
+				return -1;
 			}
 		}
 	}
 
-	return ranges;
+	*in_ranges = ranges;
+	return count;
 }
 
 static bool all_digits(const char *str)

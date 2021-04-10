@@ -38,48 +38,47 @@
 #include "idmapping.h"
 #include "api.h"
 
-static struct subordinate_range **get_subid_ranges(const char *owner, enum subid_type id_type)
+static int get_subid_ranges(const char *owner, enum subid_type id_type, struct subordinate_range ***ranges)
 {
-	struct subordinate_range **ranges = NULL;
-
+	int count;
 	switch (id_type) {
 	case ID_TYPE_UID:
 		if (!sub_uid_open(O_RDONLY)) {
-			return NULL;
+			return -1;
 		}
 		break;
 	case ID_TYPE_GID:
 		if (!sub_gid_open(O_RDONLY)) {
-			return NULL;
+			return -1;
 		}
 		break;
 	default:
-		return NULL;
+		return -1;
 	}
 
-	ranges = list_owner_ranges(owner, id_type);
+	count = list_owner_ranges(owner, id_type, ranges);
 
 	if (id_type == ID_TYPE_UID)
 		sub_uid_close();
 	else
 		sub_gid_close();
 
-	return ranges;
+	return count;
 }
 
-struct subordinate_range **get_subuid_ranges(const char *owner)
+int get_subuid_ranges(const char *owner, struct subordinate_range ***ranges)
 {
-	return get_subid_ranges(owner, ID_TYPE_UID);
+	return get_subid_ranges(owner, ID_TYPE_UID, ranges);
 }
 
-struct subordinate_range **get_subgid_ranges(const char *owner)
+int get_subgid_ranges(const char *owner, struct subordinate_range ***ranges)
 {
-	return get_subid_ranges(owner, ID_TYPE_GID);
+	return get_subid_ranges(owner, ID_TYPE_GID, ranges);
 }
 
-void subid_free_ranges(struct subordinate_range **ranges)
+void subid_free_ranges(struct subordinate_range **ranges, int count)
 {
-	return free_subordinate_ranges(ranges);
+	return free_subordinate_ranges(ranges, count);
 }
 
 int get_subid_owner(unsigned long id, uid_t **owner, enum subid_type id_type)
@@ -176,7 +175,7 @@ bool grant_subgid_range(struct subordinate_range *range, bool reuse)
 	return grant_subid_range(range, reuse, ID_TYPE_GID);
 }
 
-bool free_subid_range(struct subordinate_range *range, enum subid_type id_type)
+bool ungrant_subid_range(struct subordinate_range *range, enum subid_type id_type)
 {
 	bool ret;
 
@@ -220,12 +219,12 @@ bool free_subid_range(struct subordinate_range *range, enum subid_type id_type)
 	return ret;
 }
 
-bool free_subuid_range(struct subordinate_range *range)
+bool ungrant_subuid_range(struct subordinate_range *range)
 {
-	return free_subid_range(range, ID_TYPE_UID);
+	return ungrant_subid_range(range, ID_TYPE_UID);
 }
 
-bool free_subgid_range(struct subordinate_range *range)
+bool ungrant_subgid_range(struct subordinate_range *range)
 {
-	return free_subid_range(range, ID_TYPE_GID);
+	return ungrant_subid_range(range, ID_TYPE_GID);
 }
