@@ -80,7 +80,7 @@ void nss_init(char *nsswitch_path) {
 				goto done;
 			}
 			if (strlen(token) > 50) {
-				fprintf(stderr, "Subid NSS module name too long: %s\n", token);
+				fprintf(stderr, "Subid NSS module name too long (longer than 50 characters): %s\n", token);
 				fprintf(stderr, "Using files\n");
 				subid_nss = NULL;
 				goto done;
