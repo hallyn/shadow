@@ -37,7 +37,7 @@ void nss_exit() {
 // nsswitch_path is an argument only to support testing.
 void nss_init(char *nsswitch_path) {
 	FILE *nssfp = NULL;
-	char *line = NULL, *p, *token;
+	char *line = NULL, *p, *token, *saveptr;
 	size_t len = 0;
 
 	if (nss_initialized)
@@ -66,9 +66,9 @@ void nss_init(char *nsswitch_path) {
 			p++;
 		if (!*p)
 			continue;
-		for (token = strtok(p, " \n\t");
+		for (token = strtok_r(p, " \n\t", &saveptr);
 		     token;
-		     token = strtok(NULL, " \n\t")) {
+		     token = strtok_r(NULL, " \n\t", &saveptr)) {
 			char libname[65];
 			void *h;
 			if (strcmp(token, "files") == 0) {
