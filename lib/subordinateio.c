@@ -769,7 +769,7 @@ gid_t sub_gid_find_free_range(gid_t min, gid_t max, unsigned long count)
 }
 
 /*
- struct subordinate_range **list_owner_ranges(const char *owner, enum subid_type id_type)
+ * struct subordinate_range **list_owner_ranges(const char *owner, enum subid_type id_type)
  *
  * @owner: username
  * @id_type: UID or GUID
@@ -787,15 +787,14 @@ struct subordinate_range **list_owner_ranges(const char *owner, enum subid_type 
 	const struct subordinate_range *range;
 	struct subordinate_range **ranges = NULL;
 	struct commonio_db *db;
-	bool ok;
 	enum subid_status status;
 	int size = 0;
 	struct subid_nss_ops *h;
 
 	h = get_subid_nss_handle();
 	if (h) {
-		status = h->list_owner_ranges(owner, id_type, &ranges, &ok);
-		if (status == SUBID_STATUS_SUCCESS && ok)
+		status = h->list_owner_ranges(owner, id_type, &ranges);
+		if (status == SUBID_STATUS_SUCCESS)
 			return ranges;
 		return NULL;
 	}
@@ -873,15 +872,14 @@ int find_subid_owners(unsigned long id, uid_t **uids, enum subid_type id_type)
 	const struct subordinate_range *range;
 	struct subid_nss_ops *h;
 	enum subid_status status;
-	bool ok;
 	struct commonio_db *db;
 	int n = 0;
 
 	h = get_subid_nss_handle();
 	if (h) {
-		status = h->find_subid_owners(id, uids, id_type, &n, &ok);
+		status = h->find_subid_owners(id, uids, id_type, &n);
 		// Several ways we could handle the error cases here.
-		if (!ok || status != SUBID_STATUS_SUCCESS)
+		if (status != SUBID_STATUS_SUCCESS)
 			return -1;
 		return n;
 	}
