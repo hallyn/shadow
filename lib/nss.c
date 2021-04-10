@@ -5,6 +5,7 @@
 #include <string.h>
 #include <strings.h>
 #include <ctype.h>
+#include <stdatomic.h>
 #include "prototypes.h"
 #include "../libsubid/subid.h"
 
@@ -18,16 +19,17 @@
 // the subids are a pretty limited resource, and local files seem
 // bound to step on any other allocations leading to insecure
 // conditions.
-static bool nss_initialized;
+static atomic_flag nss_init_started;
+bool nss_init_completed;
 
 static struct subid_nss_ops *subid_nss;
 
 bool nss_is_initialized() {
-	return nss_initialized;
+	return nss_init_completed;
 }
 
 void nss_exit() {
-	if (nss_initialized && subid_nss) {
+	if (nss_is_initialized() && subid_nss) {
 		dlclose(subid_nss->handle);
 		free(subid_nss);
 		subid_nss = NULL;
@@ -40,8 +42,12 @@ void nss_init(char *nsswitch_path) {
 	char *line = NULL, *p, *token, *saveptr;
 	size_t len = 0;
 
-	if (nss_initialized)
+	if (atomic_flag_test_and_set(&nss_init_started)) {
+		// Another thread has started nss_init, wait for it to complete
+		while (!nss_init_completed)
+			usleep(100);
 		return;
+	}
 
 	if (!nsswitch_path)
 		nsswitch_path = NSSWITCH;
@@ -51,7 +57,7 @@ void nss_init(char *nsswitch_path) {
 	nssfp = fopen(nsswitch_path, "r");
 	if (!nssfp) {
 		fprintf(stderr, "Failed opening %s: %m", nsswitch_path);
-		nss_initialized = true; // let's not keep trying
+		nss_init_completed = true; // let's not keep trying
 		return;
 	}
 	while ((getline(&line, &len, nssfp)) != -1) {
@@ -137,7 +143,7 @@ void nss_init(char *nsswitch_path) {
 	}
 
 done:
-	nss_initialized = true;
+	nss_init_completed = true;
 	free(line);
 	if (nssfp) {
 		atexit(nss_exit);
