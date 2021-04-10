@@ -20,7 +20,7 @@
 // bound to step on any other allocations leading to insecure
 // conditions.
 static atomic_flag nss_init_started;
-bool nss_init_completed;
+static bool nss_init_completed;
 
 static struct subid_nss_ops *subid_nss;
 
