@@ -605,7 +605,6 @@ bool sub_uid_assigned(const char *owner)
 	struct subid_nss_ops *h;
 	bool found;
 	enum subid_status status;
-	nss_init(NULL);
 	h = get_subid_nss_handle();
 	if (h) {
 		status = h->has_any_range(owner, ID_TYPE_UID, &found);
@@ -622,7 +621,6 @@ bool have_sub_uids(const char *owner, uid_t start, unsigned long count)
 	struct subid_nss_ops *h;
 	bool found;
 	enum subid_status status;
-	nss_init(NULL);
 	h = get_subid_nss_handle();
 	if (h) {
 		status = h->has_range(owner, start, count, ID_TYPE_UID, &found);
@@ -635,7 +633,6 @@ bool have_sub_uids(const char *owner, uid_t start, unsigned long count)
 
 int sub_uid_add (const char *owner, uid_t start, unsigned long count)
 {
-	nss_init(NULL);
 	if (get_subid_nss_handle())
 		return -EOPNOTSUPP;
 	return add_range (&subordinate_uid_db, owner, start, count);
@@ -643,7 +640,6 @@ int sub_uid_add (const char *owner, uid_t start, unsigned long count)
 
 int sub_uid_remove (const char *owner, uid_t start, unsigned long count)
 {
-	nss_init(NULL);
 	if (get_subid_nss_handle())
 		return -EOPNOTSUPP;
 	return remove_range (&subordinate_uid_db, owner, start, count);
@@ -714,7 +710,6 @@ int sub_gid_open (int mode)
 bool have_sub_gids(const char *owner, gid_t start, unsigned long count)
 {
 	struct subid_nss_ops *h;
-	nss_init(NULL);
 	bool found;
 	enum subid_status status;
 	h = get_subid_nss_handle();
@@ -730,7 +725,6 @@ bool have_sub_gids(const char *owner, gid_t start, unsigned long count)
 bool sub_gid_assigned(const char *owner)
 {
 	struct subid_nss_ops *h;
-	nss_init(NULL);
 	bool found;
 	enum subid_status status;
 	h = get_subid_nss_handle();
@@ -745,7 +739,6 @@ bool sub_gid_assigned(const char *owner)
 
 int sub_gid_add (const char *owner, gid_t start, unsigned long count)
 {
-	nss_init(NULL);
 	if (get_subid_nss_handle())
 		return -EOPNOTSUPP;
 	return add_range (&subordinate_gid_db, owner, start, count);
@@ -753,7 +746,6 @@ int sub_gid_add (const char *owner, gid_t start, unsigned long count)
 
 int sub_gid_remove (const char *owner, gid_t start, unsigned long count)
 {
-	nss_init(NULL);
 	if (get_subid_nss_handle())
 		return -EOPNOTSUPP;
 	return remove_range (&subordinate_gid_db, owner, start, count);
@@ -800,7 +792,6 @@ struct subordinate_range **list_owner_ranges(const char *owner, enum subid_type 
 	int size = 0;
 	struct subid_nss_ops *h;
 
-	nss_init(NULL);
 	h = get_subid_nss_handle();
 	if (h) {
 		status = h->list_owner_ranges(owner, id_type, &ranges, &ok);
@@ -886,7 +877,6 @@ int find_subid_owners(unsigned long id, uid_t **uids, enum subid_type id_type)
 	struct commonio_db *db;
 	int n = 0;
 
-	nss_init(NULL);
 	h = get_subid_nss_handle();
 	if (h) {
 		status = h->find_subid_owners(id, uids, id_type, &n, &ok);

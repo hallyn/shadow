@@ -22,10 +22,6 @@ static bool nss_initialized;
 
 static struct subid_nss_ops *subid_nss;
 
-struct subid_nss_ops *get_subid_nss_handle() {
-	return subid_nss;
-}
-
 bool nss_is_initialized() {
 	return nss_initialized;
 }
@@ -147,4 +143,9 @@ done:
 		atexit(nss_exit);
 		fclose(nssfp);
 	}
+}
+
+struct subid_nss_ops *get_subid_nss_handle() {
+	nss_init(NULL);
+	return subid_nss;
 }
