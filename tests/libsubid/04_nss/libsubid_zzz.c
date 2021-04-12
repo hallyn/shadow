@@ -83,7 +83,7 @@ static int alloc_uid(uid_t **uids, uid_t id) {
 	return 1;
 }
 
-enum subid_status shadow_subid_find_subid_owners(unsigned long id, uid_t **uids, enum subid_type id_type, int *count)
+enum subid_status shadow_subid_find_subid_owners(unsigned long id, enum subid_type id_type, uid_t **uids, int *count)
 {
 	if (id >= 100000 && id < 165536) {
 		*count = alloc_uid(uids, getnamuid("user1"));

@@ -313,16 +313,16 @@ struct subid_nss_ops {
 	/*
 	 * nss_find_subid_owners: find uids who own a given subuid or subgid.
 	 *
-	 * @owner - string representing username being queried
+	 * @id - the delegated id (subuid or subgid) being queried
+	 * @id_type - subuid or subgid
 	 * @uids - pointer to an array of uids which will be allocated by
 	 *         nss_find_subid_owners()
-	 * @id_type - subuid or subgid
 	 * @count - number of uids found
 	 *
 	 * returns success if the module was able to determine an answer,
 	 * else an error status.
 	 */
-	enum subid_status (*find_subid_owners)(unsigned long id, uid_t **uids, enum subid_type id_type, int *count);
+	enum subid_status (*find_subid_owners)(unsigned long id, enum subid_type id_type, uid_t **uids, int *count);
 
 	/* The dlsym handle to close */
 	void *handle;

@@ -81,7 +81,7 @@ void subid_free_ranges(struct subordinate_range **ranges, int count)
 	return free_subordinate_ranges(ranges, count);
 }
 
-int get_subid_owner(unsigned long id, uid_t **owner, enum subid_type id_type)
+int get_subid_owner(unsigned long id, enum subid_type id_type, uid_t **owner)
 {
 	int ret = -1;
 
@@ -100,7 +100,7 @@ int get_subid_owner(unsigned long id, uid_t **owner, enum subid_type id_type)
 		return -1;
 	}
 
-	ret = find_subid_owners(id, owner, id_type);
+	ret = find_subid_owners(id, id_type, owner);
 
 	if (id_type == ID_TYPE_UID)
 		sub_uid_close();
@@ -112,12 +112,12 @@ int get_subid_owner(unsigned long id, uid_t **owner, enum subid_type id_type)
 
 int get_subuid_owners(uid_t uid, uid_t **owner)
 {
-	return get_subid_owner((unsigned long)uid, owner, ID_TYPE_UID);
+	return get_subid_owner((unsigned long)uid, ID_TYPE_UID, owner);
 }
 
 int get_subgid_owners(gid_t gid, uid_t **owner)
 {
-	return get_subid_owner((unsigned long)gid, owner, ID_TYPE_GID);
+	return get_subid_owner((unsigned long)gid, ID_TYPE_GID, owner);
 }
 
 bool grant_subid_range(struct subordinate_range *range, bool reuse,
