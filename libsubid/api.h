@@ -1,9 +1,8 @@
 #include "subid.h"
 #include <stdbool.h>
 
-int get_subuid_ranges(const char *owner, struct subordinate_range ***ranges);
-int get_subgid_ranges(const char *owner, struct subordinate_range ***ranges);
-void subid_free_ranges(struct subordinate_range **ranges, int count);
+int get_subuid_ranges(const char *owner, struct subordinate_range **ranges);
+int get_subgid_ranges(const char *owner, struct subordinate_range **ranges);
 
 int get_subuid_owners(uid_t uid, uid_t **owner);
 int get_subgid_owners(gid_t gid, uid_t **owner);

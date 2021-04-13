@@ -307,37 +307,21 @@ static bool have_range(struct commonio_db *db,
 	return false;
 }
 
-static bool append_range(struct subordinate_range ***ranges, const struct subordinate_range *new, int n)
+static bool append_range(struct subordinate_range **ranges, const struct subordinate_range *in, int n)
 {
-	struct subordinate_range *tmp;
 	if (!*ranges) {
-		*ranges = malloc(sizeof(struct subordinate_range **));
+		*ranges = malloc(sizeof(struct subordinate_range));
 		if (!*ranges)
 			return false;
 	} else {
-		struct subordinate_range **new;
-		new = realloc(*ranges, (n + 1) * (sizeof(struct subordinate_range **)));
+		struct subordinate_range *new;
+		new = realloc(*ranges, (n + 1) * (sizeof(struct subordinate_range)));
 		if (!new)
 			return false;
 		*ranges = new;
 	}
-	(*ranges)[n] = NULL;
-	tmp = subordinate_dup(new);
-	if (!tmp)
-		return false;
-	(*ranges)[n] = tmp;
+	(*ranges)[n] = *in;
 	return true;
-}
-
-void free_subordinate_ranges(struct subordinate_range **ranges, int count)
-{
-	int i;
-
-	if (!ranges)
-		return;
-	for (i = 0; i < count; i++)
-		subordinate_free(ranges[i]);
-	free(ranges);
 }
 
 /*
@@ -784,21 +768,19 @@ gid_t sub_gid_find_free_range(gid_t min, gid_t max, unsigned long count)
  *
  * The caller must free the subordinate range list.
  */
-int list_owner_ranges(const char *owner, enum subid_type id_type, struct subordinate_range ***in_ranges)
+int list_owner_ranges(const char *owner, enum subid_type id_type, struct subordinate_range **ranges)
 {
-	// TODO - need to handle owner being either uid or username
-	struct subordinate_range **ranges = NULL;
 	const struct subordinate_range *range;
 	struct commonio_db *db;
 	enum subid_status status;
 	int count = 0;
 	struct subid_nss_ops *h;
 
-	*in_ranges = NULL;
+	*ranges = NULL;
 
 	h = get_subid_nss_handle();
 	if (h) {
-		status = h->list_owner_ranges(owner, id_type, in_ranges, &count);
+		status = h->list_owner_ranges(owner, id_type, ranges, &count);
 		if (status == SUBID_STATUS_SUCCESS)
 			return count;
 		return -1;
@@ -812,14 +794,13 @@ int list_owner_ranges(const char *owner, enum subid_type id_type, struct subordi
 	commonio_rewind(db);
 	while ((range = commonio_next(db)) != NULL) {
 		if (0 == strcmp(range->owner, owner)) {
-			if (!append_range(&ranges, range, count++)) {
-				free_subordinate_ranges(ranges, count-1);
+			if (!append_range(ranges, range, count++)) {
+				free(*ranges);
 				return -1;
 			}
 		}
 	}
 
-	*in_ranges = ranges;
 	return count;
 }
 

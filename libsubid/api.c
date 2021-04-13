@@ -38,7 +38,7 @@
 #include "idmapping.h"
 #include "api.h"
 
-static int get_subid_ranges(const char *owner, enum subid_type id_type, struct subordinate_range ***ranges)
+static int get_subid_ranges(const char *owner, enum subid_type id_type, struct subordinate_range **ranges)
 {
 	int count;
 	switch (id_type) {
@@ -66,19 +66,14 @@ static int get_subid_ranges(const char *owner, enum subid_type id_type, struct s
 	return count;
 }
 
-int get_subuid_ranges(const char *owner, struct subordinate_range ***ranges)
+int get_subuid_ranges(const char *owner, struct subordinate_range **ranges)
 {
 	return get_subid_ranges(owner, ID_TYPE_UID, ranges);
 }
 
-int get_subgid_ranges(const char *owner, struct subordinate_range ***ranges)
+int get_subgid_ranges(const char *owner, struct subordinate_range **ranges)
 {
 	return get_subid_ranges(owner, ID_TYPE_GID, ranges);
-}
-
-void subid_free_ranges(struct subordinate_range **ranges, int count)
-{
-	return free_subordinate_ranges(ranges, count);
 }
 
 int get_subid_owner(unsigned long id, enum subid_type id_type, uid_t **owner)
