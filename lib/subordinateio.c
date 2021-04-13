@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <ctype.h>
+#include <fcntl.h>
 
 /*
  * subordinate_dup: create a duplicate range
@@ -786,20 +787,39 @@ int list_owner_ranges(const char *owner, enum subid_type id_type, struct subordi
 		return -1;
 	}
 
-	if (id_type == ID_TYPE_UID)
+	switch (id_type) {
+	case ID_TYPE_UID:
+		if (!sub_uid_open(O_RDONLY)) {
+			return -1;
+		}
 		db = &subordinate_uid_db;
-	else
+		break;
+	case ID_TYPE_GID:
+		if (!sub_gid_open(O_RDONLY)) {
+			return -1;
+		}
 		db = &subordinate_gid_db;
+		break;
+	default:
+		return -1;
+	}
 
 	commonio_rewind(db);
 	while ((range = commonio_next(db)) != NULL) {
 		if (0 == strcmp(range->owner, owner)) {
 			if (!append_range(ranges, range, count++)) {
 				free(*ranges);
-				return -1;
+				count = -1;
+				goto out;
 			}
 		}
 	}
+
+out:
+	if (id_type == ID_TYPE_UID)
+		sub_uid_close();
+	else
+		sub_gid_close();
 
 	return count;
 }
@@ -871,11 +891,24 @@ int find_subid_owners(unsigned long id, enum subid_type id_type, uid_t **uids)
 		return n;
 	}
 
-	*uids = NULL;
-	if (id_type == ID_TYPE_UID)
+	switch (id_type) {
+	case ID_TYPE_UID:
+		if (!sub_uid_open(O_RDONLY)) {
+			return -1;
+		}
 		db = &subordinate_uid_db;
-	else
+		break;
+	case ID_TYPE_GID:
+		if (!sub_gid_open(O_RDONLY)) {
+			return -1;
+		}
 		db = &subordinate_gid_db;
+		break;
+	default:
+		return -1;
+	}
+
+	*uids = NULL;
 
 	commonio_rewind(db);
 	while ((range = commonio_next(db)) != NULL) {
@@ -886,6 +919,11 @@ int find_subid_owners(unsigned long id, enum subid_type id_type, uid_t **uids)
 		}
 	}
 
+	if (id_type == ID_TYPE_UID)
+		sub_uid_close();
+	else
+		sub_gid_close();
+
 	return n;
 }
 
@@ -893,11 +931,37 @@ bool new_subid_range(struct subordinate_range *range, enum subid_type id_type, b
 {
 	struct commonio_db *db;
 	const struct subordinate_range *r;
+	bool ret;
 
-	if (id_type == ID_TYPE_UID)
+	switch (id_type) {
+	case ID_TYPE_UID:
+		if (!sub_uid_lock()) {
+			printf("Failed loging subuids (errno %d)\n", errno);
+			return false;
+		}
+		if (!sub_uid_open(O_CREAT | O_RDWR)) {
+			printf("Failed opening subuids (errno %d)\n", errno);
+			sub_uid_unlock();
+			return false;
+		}
 		db = &subordinate_uid_db;
-	else
+		break;
+	case ID_TYPE_GID:
+		if (!sub_gid_lock()) {
+			printf("Failed loging subgids (errno %d)\n", errno);
+			return false;
+		}
+		if (!sub_gid_open(O_CREAT | O_RDWR)) {
+			printf("Failed opening subgids (errno %d)\n", errno);
+			sub_gid_unlock();
+			return false;
+		}
 		db = &subordinate_gid_db;
+		break;
+	default:
+		return false;
+	}
+
 	commonio_rewind(db);
 	if (reuse) {
 		while ((r = commonio_next(db)) != NULL) {
@@ -913,20 +977,71 @@ bool new_subid_range(struct subordinate_range *range, enum subid_type id_type, b
 	}
 
 	range->start = find_free_range(db, range->start, ULONG_MAX, range->count);
-	if (range->start == ULONG_MAX)
-		return false;
 
-	return add_range(db, range->owner, range->start, range->count) == 1;
+	if (range->start == ULONG_MAX) {
+		ret = false;
+		goto out;
+	}
+
+	ret = add_range(db, range->owner, range->start, range->count) == 1;
+
+out:
+	if (id_type == ID_TYPE_UID) {
+		sub_uid_close();
+		sub_uid_unlock();
+	} else {
+		sub_gid_close();
+		sub_gid_unlock();
+	}
+
+	return ret;
 }
 
 bool release_subid_range(struct subordinate_range *range, enum subid_type id_type)
 {
 	struct commonio_db *db;
-	if (id_type == ID_TYPE_UID)
+	bool ret;
+
+	switch (id_type) {
+	case ID_TYPE_UID:
+		if (!sub_uid_lock()) {
+			printf("Failed loging subuids (errno %d)\n", errno);
+			return false;
+		}
+		if (!sub_uid_open(O_CREAT | O_RDWR)) {
+			printf("Failed opening subuids (errno %d)\n", errno);
+			sub_uid_unlock();
+			return false;
+		}
 		db = &subordinate_uid_db;
-	else
+		break;
+	case ID_TYPE_GID:
+		if (!sub_gid_lock()) {
+			printf("Failed loging subgids (errno %d)\n", errno);
+			return false;
+		}
+		if (!sub_gid_open(O_CREAT | O_RDWR)) {
+			printf("Failed opening subgids (errno %d)\n", errno);
+			sub_gid_unlock();
+			return false;
+		}
 		db = &subordinate_gid_db;
-	return remove_range(db, range->owner, range->start, range->count) == 1;
+		break;
+	default:
+		return false;
+	}
+
+	ret = remove_range(db, range->owner, range->start, range->count) == 1;
+
+	if (id_type == ID_TYPE_UID) {
+		sub_uid_close();
+		sub_uid_unlock();
+	} else {
+		sub_gid_close();
+		sub_gid_unlock();
+	}
+
+	return ret;
 }
 
 #else				/* !ENABLE_SUBIDS */

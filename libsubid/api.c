@@ -40,30 +40,7 @@
 
 static int get_subid_ranges(const char *owner, enum subid_type id_type, struct subordinate_range **ranges)
 {
-	int count;
-	switch (id_type) {
-	case ID_TYPE_UID:
-		if (!sub_uid_open(O_RDONLY)) {
-			return -1;
-		}
-		break;
-	case ID_TYPE_GID:
-		if (!sub_gid_open(O_RDONLY)) {
-			return -1;
-		}
-		break;
-	default:
-		return -1;
-	}
-
-	count = list_owner_ranges(owner, id_type, ranges);
-
-	if (id_type == ID_TYPE_UID)
-		sub_uid_close();
-	else
-		sub_gid_close();
-
-	return count;
+	return list_owner_ranges(owner, id_type, ranges);
 }
 
 int get_subuid_ranges(const char *owner, struct subordinate_range **ranges)
@@ -78,31 +55,7 @@ int get_subgid_ranges(const char *owner, struct subordinate_range **ranges)
 
 int get_subid_owner(unsigned long id, enum subid_type id_type, uid_t **owner)
 {
-	int ret = -1;
-
-	switch (id_type) {
-	case ID_TYPE_UID:
-		if (!sub_uid_open(O_RDONLY)) {
-			return -1;
-		}
-		break;
-	case ID_TYPE_GID:
-		if (!sub_gid_open(O_RDONLY)) {
-			return -1;
-		}
-		break;
-	default:
-		return -1;
-	}
-
-	ret = find_subid_owners(id, id_type, owner);
-
-	if (id_type == ID_TYPE_UID)
-		sub_uid_close();
-	else
-		sub_gid_close();
-
-	return ret;
+	return find_subid_owners(id, id_type, owner);
 }
 
 int get_subuid_owners(uid_t uid, uid_t **owner)
@@ -118,46 +71,7 @@ int get_subgid_owners(gid_t gid, uid_t **owner)
 bool grant_subid_range(struct subordinate_range *range, bool reuse,
 		       enum subid_type id_type)
 {
-	bool ret;
-
-	switch (id_type) {
-	case ID_TYPE_UID:
-		if (!sub_uid_lock()) {
-			printf("Failed loging subuids (errno %d)\n", errno);
-			return false;
-		}
-		if (!sub_uid_open(O_CREAT | O_RDWR)) {
-			printf("Failed opening subuids (errno %d)\n", errno);
-			sub_uid_unlock();
-			return false;
-		}
-		break;
-	case ID_TYPE_GID:
-		if (!sub_gid_lock()) {
-			printf("Failed loging subgids (errno %d)\n", errno);
-			return false;
-		}
-		if (!sub_gid_open(O_CREAT | O_RDWR)) {
-			printf("Failed opening subgids (errno %d)\n", errno);
-			sub_gid_unlock();
-			return false;
-		}
-		break;
-	default:
-		return false;
-	}
-
-	ret = new_subid_range(range, id_type, reuse);
-
-	if (id_type == ID_TYPE_UID) {
-		sub_uid_close();
-		sub_uid_unlock();
-	} else {
-		sub_gid_close();
-		sub_gid_unlock();
-	}
-
-	return ret;
+	return new_subid_range(range, id_type, reuse);
 }
 
 bool grant_subuid_range(struct subordinate_range *range, bool reuse)
@@ -172,46 +86,7 @@ bool grant_subgid_range(struct subordinate_range *range, bool reuse)
 
 bool ungrant_subid_range(struct subordinate_range *range, enum subid_type id_type)
 {
-	bool ret;
-
-	switch (id_type) {
-	case ID_TYPE_UID:
-		if (!sub_uid_lock()) {
-			printf("Failed loging subuids (errno %d)\n", errno);
-			return false;
-		}
-		if (!sub_uid_open(O_CREAT | O_RDWR)) {
-			printf("Failed opening subuids (errno %d)\n", errno);
-			sub_uid_unlock();
-			return false;
-		}
-		break;
-	case ID_TYPE_GID:
-		if (!sub_gid_lock()) {
-			printf("Failed loging subgids (errno %d)\n", errno);
-			return false;
-		}
-		if (!sub_gid_open(O_CREAT | O_RDWR)) {
-			printf("Failed opening subgids (errno %d)\n", errno);
-			sub_gid_unlock();
-			return false;
-		}
-		break;
-	default:
-		return false;
-	}
-
-	ret = release_subid_range(range, id_type);
-
-	if (id_type == ID_TYPE_UID) {
-		sub_uid_close();
-		sub_uid_unlock();
-	} else {
-		sub_gid_close();
-		sub_gid_unlock();
-	}
-
-	return ret;
+	return release_subid_range(range, id_type);
 }
 
 bool ungrant_subuid_range(struct subordinate_range *range)
