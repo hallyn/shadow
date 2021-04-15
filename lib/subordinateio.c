@@ -312,12 +312,12 @@ static bool append_range(struct subordinate_range ***ranges, const struct subord
 {
 	struct subordinate_range *tmp;
 	if (!*ranges) {
-		*ranges = malloc(sizeof(struct subordinate_range **));
+		*ranges = malloc(sizeof(struct subordinate_range *));
 		if (!*ranges)
 			return false;
 	} else {
 		struct subordinate_range **new;
-		new = realloc(*ranges, (n + 1) * (sizeof(struct subordinate_range **)));
+		new = realloc(*ranges, (n + 1) * (sizeof(struct subordinate_range *)));
 		if (!new)
 			return false;
 		*ranges = new;
