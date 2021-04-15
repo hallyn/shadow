@@ -38,7 +38,8 @@
 #include "idmapping.h"
 #include "api.h"
 
-static int get_subid_ranges(const char *owner, enum subid_type id_type, struct subordinate_range **ranges)
+static
+int get_subid_ranges(const char *owner, enum subid_type id_type, struct subordinate_range **ranges)
 {
 	return list_owner_ranges(owner, id_type, ranges);
 }
@@ -53,6 +54,7 @@ int get_subgid_ranges(const char *owner, struct subordinate_range **ranges)
 	return get_subid_ranges(owner, ID_TYPE_GID, ranges);
 }
 
+static
 int get_subid_owner(unsigned long id, enum subid_type id_type, uid_t **owner)
 {
 	return find_subid_owners(id, id_type, owner);
@@ -68,6 +70,7 @@ int get_subgid_owners(gid_t gid, uid_t **owner)
 	return get_subid_owner((unsigned long)gid, ID_TYPE_GID, owner);
 }
 
+static
 bool grant_subid_range(struct subordinate_range *range, bool reuse,
 		       enum subid_type id_type)
 {
@@ -84,6 +87,7 @@ bool grant_subgid_range(struct subordinate_range *range, bool reuse)
 	return grant_subid_range(range, reuse, ID_TYPE_GID);
 }
 
+static
 bool ungrant_subid_range(struct subordinate_range *range, enum subid_type id_type)
 {
 	return release_subid_range(range, id_type);
