@@ -953,6 +953,9 @@ bool new_subid_range(struct subordinate_range *range, enum subid_type id_type, b
 	const struct subordinate_range *r;
 	bool ret;
 
+	if (get_subid_nss_handle())
+		return false;
+
 	switch (id_type) {
 	case ID_TYPE_UID:
 		if (!sub_uid_lock()) {
@@ -1021,6 +1024,9 @@ bool release_subid_range(struct subordinate_range *range, enum subid_type id_typ
 {
 	struct commonio_db *db;
 	bool ret;
+
+	if (get_subid_nss_handle())
+		return false;
 
 	switch (id_type) {
 	case ID_TYPE_UID:
