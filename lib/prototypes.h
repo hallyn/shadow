@@ -300,11 +300,10 @@ struct subid_nss_ops {
 	 * @owner - string representing username being queried
 	 * @id_type - subuid or subgid
 	 * @ranges - pointer to an array of struct subordinate_range, or NULL.  The
-	 *  returned
-	 *  array of struct subordinate_range and its members must be freed by the
-	 *  caller.
+	 *           returned array of struct subordinate_range and its members must
+	 *           be freed by the caller.
 	 * @count - pointer to an integer into which the number of returned ranges
-	 *  is written.
+	 *          is written.
 
 	 * returns success if the module was able to determine an answer,
 	 * else an error status.
