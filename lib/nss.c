@@ -20,12 +20,12 @@
 // bound to step on any other allocations leading to insecure
 // conditions.
 static atomic_flag nss_init_started;
-static bool nss_init_completed;
+static atomic_bool nss_init_completed;
 
 static struct subid_nss_ops *subid_nss;
 
 bool nss_is_initialized() {
-	return nss_init_completed;
+	return atomic_load(&nss_init_completed);
 }
 
 void nss_exit() {
@@ -44,7 +44,7 @@ void nss_init(char *nsswitch_path) {
 
 	if (atomic_flag_test_and_set(&nss_init_started)) {
 		// Another thread has started nss_init, wait for it to complete
-		while (!nss_init_completed)
+		while (!atomic_load(&nss_init_completed))
 			usleep(100);
 		return;
 	}
@@ -57,7 +57,7 @@ void nss_init(char *nsswitch_path) {
 	nssfp = fopen(nsswitch_path, "r");
 	if (!nssfp) {
 		fprintf(stderr, "Failed opening %s: %m", nsswitch_path);
-		nss_init_completed = true; // let's not keep trying
+		atomic_store(&nss_init_completed, true);
 		return;
 	}
 	while ((getline(&line, &len, nssfp)) != -1) {
@@ -143,7 +143,7 @@ void nss_init(char *nsswitch_path) {
 	}
 
 done:
-	nss_init_completed = true;
+	atomic_store(&nss_init_completed, true);
 	free(line);
 	if (nssfp) {
 		atexit(nss_exit);
