@@ -52,6 +52,10 @@ echo "fd 1:"
 cat /proc/self/fdinfo/1 || true
 echo "fd 2:"
 cat /proc/self/fdinfo/2 || true
+echo "in a child:
+bash -c 'set -ex; ls -l /proc/self/fd' || true
+echo "END OF in a child:
+
 echo "+: test passed"
 echo "-: test failed"
 
