@@ -36,37 +36,7 @@ jobs:
     - run: make
     - run: make install DESTDIR=${HOME}/rootfs
     - run: sudo make install
-    - run: |
-        cd tests
-        run_test() {
-            echo "XXX Running $1 from $(pwd)"
-            if sudo $1 > $1.log; then
-                succeeded=$((succeeded+1))
-                echo -n "+"
-            else
-                failed=$((failed+1))
-                failed_tests="$failed_tests $1"
-                echo -n "-"
-            fi
-            cat $1.log >> testsuite.log
-            [ -f /etc/passwd.lock ] && echo $1 /etc/passwd.lock || true
-            [ -f /etc/group.lock ] && echo $1 /etc/group.lock || true
-            [ -f /etc/shadow.lock ] && echo $1 /etc/shadow.lock || true
-            [ -f /etc/gshadow.lock ] && echo $1 /etc/gshadow.lock || true
-            if [ "$(stat -c"%G" /etc/shadow)" != "shadow" ]
-            then
-                echo $1
-                ls -l /etc/shadow
-                sudo chgrp shadow /etc/shadow
-            fi
-            if [ -d /nonexistent ]
-            then
-                echo $1 /nonexistent
-                sudo rmdir /nonexistent
-            fi
-        }
-        build_path=$(git rev-parse --show-toplevel)
-        sudo find "${build_path}" -name "*.gcda" -delete
-        run_test ./su/01/su_root.test
-        run_test ./su/01/su_user.test
-        cat testsuite.log
+    - name: run su 01 su_root.test
+      run: cd tests && sudo ./su/01/su_root.test
+    - name: run su 01 su_user.test
+      run: cd tests && sudo ./su/01/su_user.test
