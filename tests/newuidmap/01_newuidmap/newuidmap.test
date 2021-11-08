@@ -1,6 +1,7 @@
 #!/bin/sh
 
 set -e
+set -x
 
 cd $(dirname $0)
 
@@ -25,11 +26,13 @@ sysctl -q kernel.unprivileged_userns_clone=1
 echo "OK"
 
 echo -n "Create world writable tmp directory... "
+rm -rf /tmp/test-uidmap
 mkdir -m 0777 /tmp/test-uidmap
 echo "OK"
 
 echo -n "setup uidmapping... "
 runuser foo -g foo -c "unshare -U sleep 10 & pid=\$!; \
+        echo \$pid; \
         newuidmap \$pid 0 1000 1 1 1000000 1000; ret=\$?; \
 	cat /proc/\$pid/uid_map >/tmp/test-uidmap/uid_map;
         kill \$pid; exit \$ret"
