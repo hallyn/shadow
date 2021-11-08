@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <dlfcn.h>
 
+FILE *shadow_logfd;
+
 extern bool nss_is_initialized();
 extern struct subid_nss_ops *get_subid_nss_handle();
 
