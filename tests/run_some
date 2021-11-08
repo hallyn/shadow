@@ -139,5 +139,6 @@ if [ "$failed" != 0 ]
 then
 	echo "the following tests failed:"
 	echo "$failed_tests"
+    cat testsuite.log
     exit 1
 fi
