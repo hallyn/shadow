@@ -36,6 +36,8 @@ jobs:
     - run: make
     - run: make install DESTDIR=${HOME}/rootfs
     - run: sudo make install
+    - name: run sudo run_some
+      run: cd tests && sudo ./run_some
     - name: run su 01 su_root.test
       run: cd tests && sudo ./su/01/su_root.test
     - name: run su 01 su_user.test
